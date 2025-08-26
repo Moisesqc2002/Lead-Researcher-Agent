@@ -1,0 +1,85 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id                String   @id @default(cuid())
+  email             String   @unique
+  googleId          String?  @unique
+  name              String?
+  businessName      String?
+  businessType      String?
+  goals             String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  campaigns Campaign[]
+  
+  @@map("users")
+}
+
+model Campaign {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  status      CampaignStatus @default(DRAFT)
+  
+  // ICP Details
+  targetRole      String?
+  targetIndustry  String?
+  targetLocation  String?
+  companySize     String?
+  icpDetails      Json?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  
+  leads       Lead[]
+  
+  @@map("campaigns")
+}
+
+model Lead {
+  id              String   @id @default(cuid())
+  firstName       String
+  lastName        String
+  email           String?
+  emailVerified   Boolean  @default(false)
+  linkedinUrl     String?
+  companyName     String?
+  role            String?
+  website         String?
+  aboutSummary    String?
+  dataPoints      Json?
+  qualificationReason String?
+  interestRating  Int?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  campaign        Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  campaignId      String
+  
+  @@map("leads")
+}
+
+enum CampaignStatus {
+  DRAFT
+  RESEARCHING
+  COMPLETED
+  FAILED
+}
